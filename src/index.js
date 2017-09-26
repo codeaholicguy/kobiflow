@@ -24,8 +24,6 @@ program
   .description("Record changes to current workspace")
   .action(commit);
 
-program.command("test").action(test);
-
 program.parse(process.argv);
 
 if (!process.argv.slice(2).length) {
@@ -109,10 +107,4 @@ async function commit() {
   } catch (err) {
     console.error(err.message);
   }
-}
-
-async function test() {
-  const token = await getJiraToken();
-
-  console.log(token);
 }
