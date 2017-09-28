@@ -110,10 +110,15 @@ async function push() {
 
 async function list() {
   try {
+    const branchName = await getCurrentBranchName();
     const workspaces = await listWorkspaces();
 
     for (const workspace of Object.keys(workspaces)) {
-      console.log(`\t ${workspace}`);
+      if (branchName === workspace) {
+        console.log(`->${workspace}`);
+      } else {
+        console.log(`  ${workspace}`);
+      }
     }
   } catch (err) {
     console.error(err.message);
