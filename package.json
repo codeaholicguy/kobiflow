@@ -1,12 +1,13 @@
 {
   "name": "kobiflow",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "index.js",
   "preferGlobal": "true",
   "scripts": {
-    "build": "babel src -d dist"
+    "build": "babel src -d bin",
+    "dev": "babel src -d dist && chmod +x dist/index.js"
   },
-  "bin": "./dist/index.js",
+  "bin": "./bin/index.js",
   "author": "Codeaholicguy",
   "license": "MIT",
   "dependencies": {
