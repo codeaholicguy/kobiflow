@@ -5,7 +5,7 @@ import { exec } from "./process";
 
 const WORKSPACE_FILENAME = ".kobiflow";
 
-export async function checkWorkspace() {
+async function checkWorkspace() {
   const projectPath = process.cwd();
   const projectDotGitPath = path.join(projectPath, ".git");
 
@@ -32,7 +32,7 @@ export async function checkWorkspace() {
   }
 }
 
-export async function listWorkspaces() {
+async function listWorkspaces() {
   await checkWorkspace();
 
   let workspaces;
@@ -43,7 +43,7 @@ export async function listWorkspaces() {
   try {
     await access(workspacesPath);
 
-    const fileContent = await readFile(workspacesPath);
+    const fileContent = await readFile(workspacesPath, "utf8");
 
     workspaces = JSON.parse(fileContent);
   } catch (err) {
@@ -53,7 +53,7 @@ export async function listWorkspaces() {
   return workspaces;
 }
 
-export async function addWorkspace(workspace) {
+async function addWorkspace(workspace) {
   await checkWorkspace();
 
   let workspaces;
@@ -64,7 +64,7 @@ export async function addWorkspace(workspace) {
   try {
     await access(workspacesPath);
 
-    const fileContent = await readFile(workspacesPath);
+    const fileContent = await readFile(workspacesPath, "utf8");
 
     workspaces = JSON.parse(fileContent);
   } catch (err) {
@@ -84,3 +84,14 @@ async function saveWorkspace(workspace) {
 
   await writeFile(workspacesPath, JSON.stringify(workspace));
 }
+
+async function getWorkingTickets(branchName) {
+  const projectPath = process.cwd();
+  const workspacesPath = path.join(projectPath, WORKSPACE_FILENAME);
+  const fileContent = await readFile(workspacesPath, "utf8");
+  const workspaces = JSON.parse(fileContent);
+
+  return workspaces[branchName];
+}
+
+export { checkWorkspace, listWorkspaces, addWorkspace, getWorkingTickets };

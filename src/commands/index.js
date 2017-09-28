@@ -1,14 +1,18 @@
 import { prompt } from "inquirer";
 
-import { exec } from "../services/process";
+import { exec, spawnSync } from "../services/process";
 import {
   checkWorkspace,
   addWorkspace,
-  listWorkspaces
+  listWorkspaces,
+  getWorkingTickets
 } from "../services/workspace";
 import { getTickets } from "../services/jira";
+import { getCurrentBranchName } from "../services/git";
+import { readFile, writeFile } from "../services/fs";
+import { createPullRequest } from "../services/github";
 
-export async function start(ticketIds) {
+async function start(ticketIds) {
   try {
     await checkWorkspace();
 
@@ -34,7 +38,7 @@ export async function start(ticketIds) {
   }
 }
 
-export async function commit() {
+async function commit() {
   try {
     await checkWorkspace();
 
@@ -64,16 +68,47 @@ export async function commit() {
   }
 }
 
-export async function push() {
+async function push() {
   try {
     await checkWorkspace();
     await exec("git push");
+
+    const branchName = await getCurrentBranchName();
+    const tickets = await getWorkingTickets(branchName);
+    const ticketIds = tickets.map(ticket => `KOB-${ticket.ticketId}`);
+    const { title } = await prompt({
+      type: "input",
+      name: "title",
+      message: "Title of the pull request",
+      default: `Submit work for ${ticketIds.toString()}`
+    });
+
+    const defaultBody = tickets.reduce((content, ticket) => {
+      content += `Follow https://kobiton.atlassian.net/browse/KOB-${ticket.ticketId}\n`;
+      content += `\t- ${ticket.title}\n`;
+
+      return content;
+    }, "");
+
+    console.log(defaultBody);
+
+    await writeFile("/tmp/kobiflow", defaultBody);
+    await spawnSync(process.env["EDITOR"] || "vi", ["/tmp/kobiflow"], {
+      stdio: "inherit",
+      detached: true
+    });
+
+    const body = await readFile("/tmp/kobiflow", "utf8");
+
+    await createPullRequest(branchName, title, body);
+
+    console.log("Create pull request successfully");
   } catch (err) {
     console.error(err.message);
   }
 }
 
-export async function list() {
+async function list() {
   try {
     const workspaces = await listWorkspaces();
 
@@ -85,7 +120,7 @@ export async function list() {
   }
 }
 
-export async function check() {
+async function check() {
   try {
     await checkWorkspace();
 
@@ -96,3 +131,5 @@ export async function check() {
     console.error(err.message);
   }
 }
+
+export { start, commit, push, list, check };

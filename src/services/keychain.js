@@ -43,6 +43,25 @@ async function getJiraToken() {
   return token;
 }
 
+async function getGithubUsername() {
+  const defaultKeychain = await getDefaultKeychain();
+  const [stdout] = await exec(
+    `security find-internet-password -s github.com -g ${defaultKeychain}`
+  );
+  const username = /"acct"<blob>="(.*)"/g.exec(stdout.trim())[1];
+
+  return username;
+}
+
+async function getGithubToken() {
+  const defaultKeychain = await getDefaultKeychain();
+  const [stdout] = await exec(
+    `security find-internet-password -s github.com -w ${defaultKeychain}`
+  );
+
+  return stdout.trim();
+}
+
 async function getDefaultKeychain() {
   const [stdout] = await exec("security default-keychain");
   const defaultKeychain = stdout.replace(/['"]+/g, "").trim();
@@ -50,4 +69,4 @@ async function getDefaultKeychain() {
   return defaultKeychain;
 }
 
-export { getJiraToken };
+export { getJiraToken, getGithubToken, getGithubUsername };

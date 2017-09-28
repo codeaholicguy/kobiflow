@@ -1,11 +1,9 @@
-import Promise from "bluebird";
 import HttpStatusCodes from "http-status-codes";
 
 import { getJiraToken } from "./keychain";
+import { request } from "./request";
 
-const requestAsync = Promise.promisify(require("request"));
-
-export async function getTickets(ticketIds) {
+async function getTickets(ticketIds) {
   const jiraToken = await getJiraToken();
   const jiraRequests = ticketIds.map(ticketId => {
     return {
@@ -16,7 +14,7 @@ export async function getTickets(ticketIds) {
   const workingTickets = [];
 
   for (const { url, ticketId } of jiraRequests) {
-    const { body, statusCode } = await requestAsync({
+    const { body, statusCode } = await request({
       url,
       method: "get",
       headers: {
@@ -36,3 +34,5 @@ export async function getTickets(ticketIds) {
 
   return workingTickets;
 }
+
+export { getTickets };
