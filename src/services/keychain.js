@@ -1,13 +1,13 @@
 import { prompt } from "inquirer";
 
-import { execAsync } from "./process";
+import { exec } from "./process";
 
 async function getJiraToken() {
   let token;
   const defaultKeychain = await getDefaultKeychain();
 
   try {
-    const [stdout, stderr] = await execAsync(
+    const [stdout, stderr] = await exec(
       `security find-generic-password -s JIRA -g ${defaultKeychain}`
     );
 
@@ -31,7 +31,7 @@ async function getJiraToken() {
       message: "Password"
     });
 
-    await execAsync(
+    await exec(
       `security add-generic-password -s JIRA -a ${username} -w ${password} ${defaultKeychain}`
     );
 
@@ -44,10 +44,8 @@ async function getJiraToken() {
 }
 
 async function getDefaultKeychain() {
-  const [stdout] = await execAsync("security default-keychain");
+  const [stdout] = await exec("security default-keychain");
   const defaultKeychain = stdout.replace(/['"]+/g, "").trim();
-
-  console.log("Default keychain", defaultKeychain);
 
   return defaultKeychain;
 }

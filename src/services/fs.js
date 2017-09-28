@@ -1,5 +1,9 @@
 import Promise from "bluebird";
 
-const { writeFileAsync } = Promise.promisifyAll(require("fs"));
+const {
+  accessAsync: access,
+  readFileAsync: readFile,
+  writeFileAsync: writeFile
+} = Promise.promisifyAll(require("fs"));
 
-export { writeFileAsync };
+export { access, readFile, writeFile };
