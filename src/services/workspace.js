@@ -2,6 +2,7 @@ import path from "path";
 
 import { readFile, writeFile, access } from "./fs";
 import { exec } from "./process";
+import { getRepoName } from "./git";
 
 const WORKSPACE_FILENAME = ".kobiflow";
 
@@ -19,16 +20,29 @@ async function checkWorkspace() {
     const [stdout] = await exec("git remote show upstream");
 
     if (
-      !/Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(stdout.trim())
+      !/Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(
+        stdout.trim()
+      ) ||
+      !/Fetch URL: git@github\.com:kobiton\/.+\.git/g.test(stdout.trim())
     ) {
       throw new Error(
         "This is not Kobiton's repository, please try another repository"
       );
     }
   } catch (err) {
-    throw new Error(
-      "Please add remote upstream to your current local repository"
-    );
+    if (err.message.toLowercase().includes("not kobiton")) {
+      throw err;
+    } else {
+      console.log(
+        "Remote upstream does not exist, adding remote upstream to your current local repository"
+      );
+
+      const repoName = await getRepoName();
+
+      await exec(
+        `git remote add upstream https://github.com/kobiton/${repoName}.git`
+      );
+    }
   }
 }
 

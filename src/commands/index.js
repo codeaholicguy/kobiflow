@@ -70,10 +70,11 @@ async function commit() {
 
 async function push() {
   try {
-    await checkWorkspace();
-    await exec("git push");
-
     const branchName = await getCurrentBranchName();
+
+    await checkWorkspace();
+    await exec(`git push -u origin ${branchName}`);
+
     const tickets = await getWorkingTickets(branchName);
     const ticketIds = tickets.map(ticket => `KOB-${ticket.ticketId}`);
     const { title } = await prompt({
