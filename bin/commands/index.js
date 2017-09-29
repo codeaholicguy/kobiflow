@@ -77,10 +77,11 @@ let commit = (() => {
 let push = (() => {
   var _ref3 = _asyncToGenerator(function* () {
     try {
-      yield (0, _workspace.checkWorkspace)();
-      yield (0, _process.exec)("git push");
-
       const branchName = yield (0, _git.getCurrentBranchName)();
+
+      yield (0, _workspace.checkWorkspace)();
+      yield (0, _process.exec)(`git push -u origin ${branchName}`);
+
       const tickets = yield (0, _workspace.getWorkingTickets)(branchName);
       const ticketIds = tickets.map(function (ticket) {
         return `KOB-${ticket.ticketId}`;

@@ -21,11 +21,19 @@ let checkWorkspace = (() => {
     try {
       const [stdout] = yield (0, _process.exec)("git remote show upstream");
 
-      if (!/Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(stdout.trim())) {
+      if (!/Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(stdout.trim()) || !/Fetch URL: git@github\.com:kobiton\/.+\.git/g.test(stdout.trim())) {
         throw new Error("This is not Kobiton's repository, please try another repository");
       }
     } catch (err) {
-      throw new Error("Please add remote upstream to your current local repository");
+      if (err.message.toLowercase().includes("not kobiton")) {
+        throw err;
+      } else {
+        console.log("Remote upstream does not exist, adding remote upstream to your current local repository");
+
+        const repoName = yield (0, _git.getRepoName)();
+
+        yield (0, _process.exec)(`git remote add upstream https://github.com/kobiton/${repoName}.git`);
+      }
     }
   });
 
@@ -127,6 +135,8 @@ var _path2 = _interopRequireDefault(_path);
 var _fs = require("./fs");
 
 var _process = require("./process");
+
+var _git = require("./git");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
