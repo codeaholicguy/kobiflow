@@ -18,13 +18,12 @@ async function checkWorkspace() {
 
   try {
     const [stdout] = await exec("git remote show upstream");
-
-    if (
-      !/Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(
+    const kobitonRepo =
+      /Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(
         stdout.trim()
-      ) ||
-      !/Fetch URL: git@github\.com:kobiton\/.+\.git/g.test(stdout.trim())
-    ) {
+      ) || /Fetch URL: git@github\.com:kobiton\/.+\.git/g.test(stdout.trim());
+
+    if (!kobitonRepo) {
       throw new Error(
         "This is not Kobiton's repository, please try another repository"
       );

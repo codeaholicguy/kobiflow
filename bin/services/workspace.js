@@ -20,8 +20,9 @@ let checkWorkspace = (() => {
 
     try {
       const [stdout] = yield (0, _process.exec)("git remote show upstream");
+      const kobitonRepo = /Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(stdout.trim()) || /Fetch URL: git@github\.com:kobiton\/.+\.git/g.test(stdout.trim());
 
-      if (!/Fetch URL: https:\/\/github.com\/kobiton\/.+\.git/g.test(stdout.trim()) || !/Fetch URL: git@github\.com:kobiton\/.+\.git/g.test(stdout.trim())) {
+      if (!kobitonRepo) {
         throw new Error("This is not Kobiton's repository, please try another repository");
       }
     } catch (err) {
