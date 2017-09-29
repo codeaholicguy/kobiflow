@@ -99,8 +99,6 @@ let push = (() => {
         return content;
       }, "");
 
-      console.log(defaultBody);
-
       yield (0, _fs.writeFile)("/tmp/kobiflow", defaultBody);
       yield (0, _process.spawnSync)(process.env["EDITOR"] || "vi", ["/tmp/kobiflow"], {
         stdio: "inherit",
