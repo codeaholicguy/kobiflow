@@ -7,9 +7,13 @@ var _commander2 = _interopRequireDefault(_commander);
 
 var _commands = require("./commands");
 
+var _package = require("../package.json");
+
+var _package2 = _interopRequireDefault(_package);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-_commander2.default.version("0.0.1").description("Kobiflow - Kobiton work flow");
+_commander2.default.version(_package2.default.version).description("Kobiflow - Kobiton work flow");
 
 _commander2.default.command("start [ticketIds...]").description("Start working on tickets, open workspace").action(_commands.start);
 

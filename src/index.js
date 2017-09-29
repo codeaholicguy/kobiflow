@@ -3,8 +3,9 @@
 import program from "commander";
 
 import { start, commit, push, list, check } from "./commands";
+import pkg from "../package.json";
 
-program.version("0.0.1").description("Kobiflow - Kobiton work flow");
+program.version(pkg.version).description("Kobiflow - Kobiton work flow");
 
 program
   .command("start [ticketIds...]")
