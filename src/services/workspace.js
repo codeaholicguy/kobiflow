@@ -30,7 +30,7 @@ async function checkWorkspace() {
       );
     }
   } catch (err) {
-    if (err.message.toLowercase().includes("not kobiton")) {
+    if (err.message.toLowerCase().includes("not kobiton")) {
       throw err;
     } else {
       console.log(

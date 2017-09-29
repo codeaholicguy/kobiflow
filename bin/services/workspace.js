@@ -25,7 +25,7 @@ let checkWorkspace = (() => {
         throw new Error("This is not Kobiton's repository, please try another repository");
       }
     } catch (err) {
-      if (err.message.toLowercase().includes("not kobiton")) {
+      if (err.message.toLowerCase().includes("not kobiton")) {
         throw err;
       } else {
         console.log("Remote upstream does not exist, adding remote upstream to your current local repository");
