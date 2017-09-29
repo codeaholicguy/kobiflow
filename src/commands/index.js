@@ -90,8 +90,6 @@ async function push() {
       return content;
     }, "");
 
-    console.log(defaultBody);
-
     await writeFile("/tmp/kobiflow", defaultBody);
     await spawnSync(process.env["EDITOR"] || "vi", ["/tmp/kobiflow"], {
       stdio: "inherit",
