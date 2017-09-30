@@ -2,10 +2,9 @@
 
 
 ```
-
   Usage: kobiflow [options] [command]
 
-  Kobiflow - Kobiton work flow
+  Kobiflow - Kobiton work flow. For the first time using this freaking cool tool, please type `kobiflow setup` for setting up the environment
 
 
   Options:
@@ -20,5 +19,12 @@
     commit                Record changes to current workspace
     push                  Push code to Github and auto create pull request
     list                  List all your workspaces
-    check                 Check current workspace is good to go
+    setup                 Setup kobiflow for the first time
+    cleanup               Cleanup workspace
+    fix                   Fix review comments, change ticket status
 ```
+
+## Notice
+
+- For first time using please use `kobiflow setup`
+- TicketId is the number part which is next to KOB, e.g To start working with ticket KOB-789 you can type `kobiflow start 789`
