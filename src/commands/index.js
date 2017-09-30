@@ -1,16 +1,20 @@
 import { prompt } from "inquirer";
 
-import { exec, spawnSync } from "../services/process";
+import { exec } from "../services/process";
 import {
   checkWorkspace,
   addWorkspace,
   listWorkspaces,
   getWorkingTickets
 } from "../services/workspace";
-import { getTickets } from "../services/jira";
+import {
+  getTickets,
+  getJiraUser,
+  doTransition,
+  TICKET_STATUS
+} from "../services/jira";
 import { getCurrentBranchName } from "../services/git";
-import { readFile, writeFile } from "../services/fs";
-import { createPullRequest } from "../services/github";
+import { createPullRequest, getGithubUser } from "../services/github";
 
 async function start(ticketIds) {
   try {
@@ -41,20 +45,7 @@ async function start(ticketIds) {
 async function commit() {
   try {
     await checkWorkspace();
-
-    const [stdout] = await exec("git status --short");
-    const changes = stdout
-      .split("\n")
-      .filter(item => item.length)
-      .map(item => item.split(" ")[2]);
-    const { selectedChanges } = await prompt({
-      type: "checkbox",
-      choices: changes,
-      name: "selectedChanges",
-      message: "Select file you want to add to the index before commit the work"
-    });
-
-    await exec(`git add ${selectedChanges.join(" ")}`);
+    await exec("git add .");
 
     const { commitMessage } = await prompt({
       type: "input",
@@ -70,38 +61,43 @@ async function commit() {
 
 async function push() {
   try {
+    await checkWorkspace();
+
     const branchName = await getCurrentBranchName();
 
-    await checkWorkspace();
     await exec(`git push -u origin ${branchName}`);
 
     const tickets = await getWorkingTickets(branchName);
-    const ticketIds = tickets.map(ticket => `KOB-${ticket.ticketId}`);
+    const ticketIds = tickets.map(ticket => ticket.ticketId);
+    const ticketCodes = tickets.map(ticket => `KOB-${ticket.ticketId}`);
     const { title } = await prompt({
       type: "input",
       name: "title",
       message: "Title of the pull request",
-      default: `Submit work for ${ticketIds.toString()}`
+      default: `Submit work for ${ticketCodes.join(" ")}`
     });
 
     const defaultBody = tickets.reduce((content, ticket) => {
       content += `Follow https://kobiton.atlassian.net/browse/KOB-${ticket.ticketId}\n`;
-      content += `\t- ${ticket.title}\n`;
+      content += `  - ${ticket.title}\n`;
 
       return content;
     }, "");
 
-    await writeFile("/tmp/kobiflow", defaultBody);
-    await spawnSync(process.env["EDITOR"] || "vi", ["/tmp/kobiflow"], {
-      stdio: "inherit",
-      detached: true
+    const { body } = await prompt({
+      type: "editor",
+      name: "body",
+      message: "Compose your pull request description",
+      default: defaultBody
     });
-
-    const body = await readFile("/tmp/kobiflow", "utf8");
 
     await createPullRequest(branchName, title, body);
 
     console.log("Create pull request successfully");
+
+    await doTransition(ticketIds, TICKET_STATUS.WAIT_FOR_MERGE);
+
+    console.log("Pushing code completed");
   } catch (err) {
     console.error(err.message);
   }
@@ -124,9 +120,11 @@ async function list() {
   }
 }
 
-async function check() {
+async function setup() {
   try {
     await checkWorkspace();
+    await getJiraUser();
+    await getGithubUser();
 
     console.log(
       "Everything seems good, type 'kobiflow start' to start working, good luck!"
@@ -136,4 +134,58 @@ async function check() {
   }
 }
 
-export { start, commit, push, list, check };
+async function cleanup() {
+  try {
+    await checkWorkspace();
+
+    const { option } = await prompt({
+      type: "list",
+      choices: [
+        {
+          name: "Delete all branches except master",
+          value: "all"
+        },
+        { name: "Select branch to delete", value: "select" }
+      ],
+      name: "option",
+      message: "What do you want dude?"
+    });
+
+    if (option === "all") {
+      await exec("git branch | grep -v 'master' | xargs git branch -D");
+    } else {
+      const [stdout] = await exec("git branch --format '%(refname:lstrip=2)'");
+      const branches = stdout.split("\n").filter(item => item.length);
+      const { selectedBranches } = await prompt({
+        type: "checkbox",
+        choices: branches,
+        name: "selectedBranches",
+        message: "Select branches you want to delete"
+      });
+
+      await exec(`git branch -D ${selectedBranches.join(" ")}`);
+    }
+
+    console.log("Cleanup successfully");
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
+async function fix() {
+  try {
+    await checkWorkspace();
+
+    const branchName = await getCurrentBranchName();
+    const tickets = await getWorkingTickets(branchName);
+    const ticketIds = tickets.map(ticket => ticket.ticketId);
+
+    await doTransition(ticketIds, TICKET_STATUS.IN_PROGRESS);
+
+    console.log("Great, now you can start fixing your pull request");
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
+export { start, commit, push, list, setup, cleanup, fix };

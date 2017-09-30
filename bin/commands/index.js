@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.check = exports.list = exports.push = exports.commit = exports.start = undefined;
+exports.fix = exports.cleanup = exports.setup = exports.list = exports.push = exports.commit = exports.start = undefined;
 
 let start = (() => {
   var _ref = _asyncToGenerator(function* (ticketIds) {
@@ -41,21 +41,7 @@ let commit = (() => {
   var _ref2 = _asyncToGenerator(function* () {
     try {
       yield (0, _workspace.checkWorkspace)();
-
-      const [stdout] = yield (0, _process.exec)("git status --short");
-      const changes = stdout.split("\n").filter(function (item) {
-        return item.length;
-      }).map(function (item) {
-        return item.split(" ")[2];
-      });
-      const { selectedChanges } = yield (0, _inquirer.prompt)({
-        type: "checkbox",
-        choices: changes,
-        name: "selectedChanges",
-        message: "Select file you want to add to the index before commit the work"
-      });
-
-      yield (0, _process.exec)(`git add ${selectedChanges.join(" ")}`);
+      yield (0, _process.exec)("git add .");
 
       const { commitMessage } = yield (0, _inquirer.prompt)({
         type: "input",
@@ -77,40 +63,47 @@ let commit = (() => {
 let push = (() => {
   var _ref3 = _asyncToGenerator(function* () {
     try {
+      yield (0, _workspace.checkWorkspace)();
+
       const branchName = yield (0, _git.getCurrentBranchName)();
 
-      yield (0, _workspace.checkWorkspace)();
       yield (0, _process.exec)(`git push -u origin ${branchName}`);
 
       const tickets = yield (0, _workspace.getWorkingTickets)(branchName);
       const ticketIds = tickets.map(function (ticket) {
+        return ticket.ticketId;
+      });
+      const ticketCodes = tickets.map(function (ticket) {
         return `KOB-${ticket.ticketId}`;
       });
       const { title } = yield (0, _inquirer.prompt)({
         type: "input",
         name: "title",
         message: "Title of the pull request",
-        default: `Submit work for ${ticketIds.toString()}`
+        default: `Submit work for ${ticketCodes.join(" ")}`
       });
 
       const defaultBody = tickets.reduce(function (content, ticket) {
         content += `Follow https://kobiton.atlassian.net/browse/KOB-${ticket.ticketId}\n`;
-        content += `\t- ${ticket.title}\n`;
+        content += `  - ${ticket.title}\n`;
 
         return content;
       }, "");
 
-      yield (0, _fs.writeFile)("/tmp/kobiflow", defaultBody);
-      yield (0, _process.spawnSync)(process.env["EDITOR"] || "vi", ["/tmp/kobiflow"], {
-        stdio: "inherit",
-        detached: true
+      const { body } = yield (0, _inquirer.prompt)({
+        type: "editor",
+        name: "body",
+        message: "Compose your pull request description",
+        default: defaultBody
       });
-
-      const body = yield (0, _fs.readFile)("/tmp/kobiflow", "utf8");
 
       yield (0, _github.createPullRequest)(branchName, title, body);
 
       console.log("Create pull request successfully");
+
+      yield (0, _jira.doTransition)(ticketIds, _jira.TICKET_STATUS.WAIT_FOR_MERGE);
+
+      console.log("Pushing code completed");
     } catch (err) {
       console.error(err.message);
     }
@@ -144,10 +137,12 @@ let list = (() => {
   };
 })();
 
-let check = (() => {
+let setup = (() => {
   var _ref5 = _asyncToGenerator(function* () {
     try {
       yield (0, _workspace.checkWorkspace)();
+      yield (0, _jira.getJiraUser)();
+      yield (0, _github.getGithubUser)();
 
       console.log("Everything seems good, type 'kobiflow start' to start working, good luck!");
     } catch (err) {
@@ -155,8 +150,75 @@ let check = (() => {
     }
   });
 
-  return function check() {
+  return function setup() {
     return _ref5.apply(this, arguments);
+  };
+})();
+
+let cleanup = (() => {
+  var _ref6 = _asyncToGenerator(function* () {
+    try {
+      yield (0, _workspace.checkWorkspace)();
+
+      const { option } = yield (0, _inquirer.prompt)({
+        type: "list",
+        choices: [{
+          name: "Delete all branches except master",
+          value: "all"
+        }, { name: "Select branch to delete", value: "select" }],
+        name: "option",
+        message: "What do you want dude?"
+      });
+
+      if (option === "all") {
+        yield (0, _process.exec)("git branch | grep -v 'master' | xargs git branch -D");
+      } else {
+        const [stdout] = yield (0, _process.exec)("git branch --format '%(refname:lstrip=2)'");
+        const branches = stdout.split("\n").filter(function (item) {
+          return item.length;
+        });
+        const { selectedBranches } = yield (0, _inquirer.prompt)({
+          type: "checkbox",
+          choices: branches,
+          name: "selectedBranches",
+          message: "Select branches you want to delete"
+        });
+
+        yield (0, _process.exec)(`git branch -D ${selectedBranches.join(" ")}`);
+      }
+
+      console.log("Cleanup successfully");
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
+
+  return function cleanup() {
+    return _ref6.apply(this, arguments);
+  };
+})();
+
+let fix = (() => {
+  var _ref7 = _asyncToGenerator(function* () {
+    try {
+      yield (0, _workspace.checkWorkspace)();
+
+      const branchName = yield (0, _git.getCurrentBranchName)();
+      const tickets = yield (0, _workspace.getWorkingTickets)(branchName);
+      const ticketIds = tickets.map(function (ticket) {
+        return ticket.ticketId;
+      });
+
+      yield (0, _jira.doTransition)(ticketIds, _jira.TICKET_STATUS.IN_PROGRESS);
+
+      console.log("Great, now you can start fixing your pull request");
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
+
+  return function fix() {
+    return _ref7.apply(this, arguments);
   };
 })();
 
@@ -170,8 +232,6 @@ var _jira = require("../services/jira");
 
 var _git = require("../services/git");
 
-var _fs = require("../services/fs");
-
 var _github = require("../services/github");
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
@@ -180,4 +240,6 @@ exports.start = start;
 exports.commit = commit;
 exports.push = push;
 exports.list = list;
-exports.check = check;
+exports.setup = setup;
+exports.cleanup = cleanup;
+exports.fix = fix;

@@ -2,10 +2,14 @@
 
 import program from "commander";
 
-import { start, commit, push, list, check } from "./commands";
+import { start, commit, push, list, setup, cleanup, fix } from "./commands";
 import pkg from "../package.json";
 
-program.version(pkg.version).description("Kobiflow - Kobiton work flow");
+program
+  .version(pkg.version)
+  .description(
+    "Kobiflow - Kobiton work flow. For the first time using this freaking cool tool, please type `kobiflow setup` for setting up the environment"
+  );
 
 program
   .command("start [ticketIds...]")
@@ -28,9 +32,19 @@ program
   .action(list);
 
 program
-  .command("check")
-  .description("Check current workspace is good to go")
-  .action(check);
+  .command("setup")
+  .description("Setup kobiflow for the first time")
+  .action(setup);
+
+program
+  .command("cleanup")
+  .description("Cleanup workspace")
+  .action(cleanup);
+
+program
+  .command("fix")
+  .description("Fix review comments, change ticket status")
+  .action(fix);
 
 program.parse(process.argv);
 
