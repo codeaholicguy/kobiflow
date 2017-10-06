@@ -1,5 +1,14 @@
 # Kobiflow
 
+## Install
+```
+npm install -g kobiflow
+```
+
+## Using
+
+- For first time using please use `kobiflow setup`
+- TicketId is the number part which is next to KOB, e.g To start working with ticket KOB-789 you can type `kobiflow start 789`
 
 ```
   Usage: kobiflow [options] [command]
@@ -23,8 +32,3 @@
     cleanup               Cleanup workspace
     fix                   Fix review comments, change ticket status
 ```
-
-## Notice
-
-- For first time using please use `kobiflow setup`
-- TicketId is the number part which is next to KOB, e.g To start working with ticket KOB-789 you can type `kobiflow start 789`
