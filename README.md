@@ -4,7 +4,7 @@
 ```
   Usage: kobiflow [options] [command]
 
-  Kobiflow - Kobiton work flow. For the first time using this freaking cool tool, please type `kobiflow setup` for setting up the environment
+  Kobiflow - Kobiton workflow. For the first time using this freaking cool tool, please type `kobiflow setup` for setting up the environment
 
 
   Options:
