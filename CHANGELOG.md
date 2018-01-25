@@ -1,3 +1,8 @@
+## Version 0.0.6-beta2
+
+- Restructure `.kobiflow` file
+- Update command `list` with better display
+
 ## Version 0.0.6-beta1
 
 - Update pull request title regards with ticket title

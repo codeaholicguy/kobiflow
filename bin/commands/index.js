@@ -139,9 +139,9 @@ let list = (() => {
 
       for (const workspace of Object.keys(workspaces)) {
         if (branchName === workspace) {
-          console.log(`->${workspace} (${workspaces[workspace].url || "work in progress"})`);
+          console.log(`-> ${workspace} (${workspaces[workspace].url || "work in progress"})`);
         } else {
-          console.log(`  ${workspace} (${workspaces[workspace].url || "work in progress"})`);
+          console.log(`   ${workspace} (${workspaces[workspace].url || "work in progress"})`);
         }
       }
     } catch (err) {
