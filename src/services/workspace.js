@@ -104,6 +104,15 @@ async function getWorkingTickets(branchName) {
   const fileContent = await readFile(workspacesPath, "utf8");
   const workspaces = JSON.parse(fileContent);
 
+  return workspaces[branchName].tickets;
+}
+
+async function getWorkspace(branchName) {
+  const projectPath = process.cwd();
+  const workspacesPath = path.join(projectPath, WORKSPACE_FILENAME);
+  const fileContent = await readFile(workspacesPath, "utf8");
+  const workspaces = JSON.parse(fileContent);
+
   return workspaces[branchName];
 }
 
@@ -132,4 +141,11 @@ async function updateWorkspace(workspace) {
   return workspace;
 }
 
-export { checkWorkspace, listWorkspaces, addWorkspace, getWorkingTickets, updateWorkspace };
+export {
+  checkWorkspace,
+  listWorkspaces,
+  addWorkspace,
+  getWorkingTickets,
+  getWorkspace,
+  updateWorkspace
+};

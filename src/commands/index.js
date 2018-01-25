@@ -6,6 +6,7 @@ import {
   addWorkspace,
   listWorkspaces,
   getWorkingTickets,
+  getWorkspace,
   updateWorkspace
 } from "../services/workspace";
 import {
@@ -29,7 +30,7 @@ async function start(ticketIds) {
         .map(({ ticketId }) => `KOB-${ticketId}`)
         .join("_");
 
-      workspace[branchNames] = workingTickets;
+      workspace[branchNames] = {tickets: workingTickets};
 
       await addWorkspace(workspace);
       await exec(`git checkout -b ${branchNames}`);
@@ -105,9 +106,9 @@ async function push() {
     });
 
     const url = await createPullRequest(branchName, title, body);
-    const workspace = await getWorkingTickets(branchName);
+    const workspace = await getWorkspace(branchName);
 
-    await updateWorkspace({...workspace, url});
+    await updateWorkspace({[branchName]: {...workspace, url}});
 
     console.log("Create pull request successfully");
 
@@ -126,9 +127,9 @@ async function list() {
 
     for (const workspace of Object.keys(workspaces)) {
       if (branchName === workspace) {
-        console.log(`->${workspace}`);
+        console.log(`-> ${workspace} (${workspaces[workspace].url || "work in progress"})`);
       } else {
-        console.log(`  ${workspace}`);
+        console.log(`   ${workspace} (${workspaces[workspace].url || "work in progress"})`);
       }
     }
   } catch (err) {
@@ -209,7 +210,7 @@ async function open() {
     await checkWorkspace();
 
     const branchName = await getCurrentBranchName();
-    const workspace = await getWorkingTickets(branchName);
+    const workspace = await getWorkspace(branchName);
 
     if (!workspace.url) {
       throw new Error("This workspace has not been completed yet");

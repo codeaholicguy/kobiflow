@@ -20,7 +20,7 @@ let start = (() => {
           return `KOB-${ticketId}`;
         }).join("_");
 
-        workspace[branchNames] = workingTickets;
+        workspace[branchNames] = { tickets: workingTickets };
 
         yield (0, _workspace.addWorkspace)(workspace);
         yield (0, _process.exec)(`git checkout -b ${branchNames}`);
@@ -112,9 +112,9 @@ let push = (() => {
       });
 
       const url = yield (0, _github.createPullRequest)(branchName, title, body);
-      const workspace = yield (0, _workspace.getWorkingTickets)(branchName);
+      const workspace = yield (0, _workspace.getWorkspace)(branchName);
 
-      yield (0, _workspace.updateWorkspace)(_extends({}, workspace, { url }));
+      yield (0, _workspace.updateWorkspace)({ [branchName]: _extends({}, workspace, { url }) });
 
       console.log("Create pull request successfully");
 
@@ -139,9 +139,9 @@ let list = (() => {
 
       for (const workspace of Object.keys(workspaces)) {
         if (branchName === workspace) {
-          console.log(`->${workspace}`);
+          console.log(`->${workspace} (${workspaces[workspace].url || "work in progress"})`);
         } else {
-          console.log(`  ${workspace}`);
+          console.log(`  ${workspace} (${workspaces[workspace].url || "work in progress"})`);
         }
       }
     } catch (err) {
@@ -245,7 +245,7 @@ let open = (() => {
       yield (0, _workspace.checkWorkspace)();
 
       const branchName = yield (0, _git.getCurrentBranchName)();
-      const workspace = yield (0, _workspace.getWorkingTickets)(branchName);
+      const workspace = yield (0, _workspace.getWorkspace)(branchName);
 
       if (!workspace.url) {
         throw new Error("This workspace has not been completed yet");

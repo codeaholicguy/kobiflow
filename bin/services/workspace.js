@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.updateWorkspace = exports.getWorkingTickets = exports.addWorkspace = exports.listWorkspaces = exports.checkWorkspace = undefined;
+exports.updateWorkspace = exports.getWorkspace = exports.getWorkingTickets = exports.addWorkspace = exports.listWorkspaces = exports.checkWorkspace = undefined;
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
@@ -121,7 +121,7 @@ let getWorkingTickets = (() => {
     const fileContent = yield (0, _fs.readFile)(workspacesPath, "utf8");
     const workspaces = JSON.parse(fileContent);
 
-    return workspaces[branchName];
+    return workspaces[branchName].tickets;
   });
 
   return function getWorkingTickets(_x3) {
@@ -129,8 +129,23 @@ let getWorkingTickets = (() => {
   };
 })();
 
+let getWorkspace = (() => {
+  var _ref6 = _asyncToGenerator(function* (branchName) {
+    const projectPath = process.cwd();
+    const workspacesPath = _path2.default.join(projectPath, WORKSPACE_FILENAME);
+    const fileContent = yield (0, _fs.readFile)(workspacesPath, "utf8");
+    const workspaces = JSON.parse(fileContent);
+
+    return workspaces[branchName];
+  });
+
+  return function getWorkspace(_x4) {
+    return _ref6.apply(this, arguments);
+  };
+})();
+
 let updateWorkspace = (() => {
-  var _ref6 = _asyncToGenerator(function* (workspace) {
+  var _ref7 = _asyncToGenerator(function* (workspace) {
     yield checkWorkspace();
 
     let workspaces;
@@ -155,8 +170,8 @@ let updateWorkspace = (() => {
     return workspace;
   });
 
-  return function updateWorkspace(_x4) {
-    return _ref6.apply(this, arguments);
+  return function updateWorkspace(_x5) {
+    return _ref7.apply(this, arguments);
   };
 })();
 
@@ -180,4 +195,5 @@ exports.checkWorkspace = checkWorkspace;
 exports.listWorkspaces = listWorkspaces;
 exports.addWorkspace = addWorkspace;
 exports.getWorkingTickets = getWorkingTickets;
+exports.getWorkspace = getWorkspace;
 exports.updateWorkspace = updateWorkspace;
