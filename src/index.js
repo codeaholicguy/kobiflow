@@ -2,7 +2,7 @@
 
 import program from "commander";
 
-import { start, commit, push, list, setup, cleanup, fix } from "./commands";
+import { start, commit, push, list, setup, cleanup, fix, open } from "./commands";
 import pkg from "../package.json";
 
 program
@@ -45,6 +45,11 @@ program
   .command("fix")
   .description("Fix review comments, change ticket status")
   .action(fix);
+
+program
+  .command("open")
+  .description("Open current working pull request on browser")
+  .action(open);
 
 program.parse(process.argv);
 

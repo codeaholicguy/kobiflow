@@ -11,7 +11,7 @@ async function createPullRequest(branch, title, body) {
   } = await getGithubToken();
   const repoName = await getRepoName();
 
-  const { statusCode, body: responseBody } = await request({
+  const { statusCode, body: {html_url: url} } = await request({
     url: `https://api.github.com/repos/kobiton/${repoName}/pulls`,
     method: "post",
     json: true,
@@ -30,9 +30,11 @@ async function createPullRequest(branch, title, body) {
 
   if (statusCode !== HttpStatusCodes.CREATED) {
     throw new Error(
-      `Create pull request failed. ${JSON.stringify(responseBody)}`
+      `Create pull request failed. ${statusCode}`
     );
   }
+
+  return url;
 }
 
 async function getGithubUser() {

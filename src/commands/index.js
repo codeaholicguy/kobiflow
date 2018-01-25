@@ -5,7 +5,8 @@ import {
   checkWorkspace,
   addWorkspace,
   listWorkspaces,
-  getWorkingTickets
+  getWorkingTickets,
+  updateWorkspace
 } from "../services/workspace";
 import {
   getTickets,
@@ -70,11 +71,23 @@ async function push() {
     const tickets = await getWorkingTickets(branchName);
     const ticketIds = tickets.map(ticket => ticket.ticketId);
     const ticketCodes = tickets.map(ticket => `KOB-${ticket.ticketId}`);
+
+    let prTitle;
+
+    if (tickets.length > 1) {
+      prTitle = `Submit work for ${ticketCodes.join(" ")}`;
+    } else {
+      const ticket = tickets[0];
+      const ticketCode = ticketCodes[0];
+
+      prTitle = `[${ticketCode}] ${ticket.title}`;
+    }
+
     const { title } = await prompt({
       type: "input",
       name: "title",
       message: "Title of the pull request",
-      default: `Submit work for ${ticketCodes.join(" ")}`
+      default: prTitle
     });
 
     const defaultBody = tickets.reduce((content, ticket) => {
@@ -91,7 +104,10 @@ async function push() {
       default: defaultBody
     });
 
-    await createPullRequest(branchName, title, body);
+    const url = await createPullRequest(branchName, title, body);
+    const workspace = await getWorkingTickets(branchName);
+
+    await updateWorkspace({...workspace, url});
 
     console.log("Create pull request successfully");
 
@@ -188,4 +204,21 @@ async function fix() {
   }
 }
 
-export { start, commit, push, list, setup, cleanup, fix };
+async function open() {
+  try {
+    await checkWorkspace();
+
+    const branchName = await getCurrentBranchName();
+    const workspace = await getWorkingTickets(branchName);
+
+    if (!workspace.url) {
+      throw new Error("This workspace has not been completed yet");
+    }
+
+    await exec(`open ${workspace.url}`);
+  } catch (err) {
+    console.error(err.message);
+  }
+}
+
+export { start, commit, push, list, setup, cleanup, fix, open };

@@ -107,4 +107,29 @@ async function getWorkingTickets(branchName) {
   return workspaces[branchName];
 }
 
-export { checkWorkspace, listWorkspaces, addWorkspace, getWorkingTickets };
+async function updateWorkspace(workspace) {
+  await checkWorkspace();
+
+  let workspaces;
+
+  const projectPath = process.cwd();
+  const workspacesPath = path.join(projectPath, WORKSPACE_FILENAME);
+
+  try {
+    await access(workspacesPath);
+
+    const fileContent = await readFile(workspacesPath, "utf8");
+
+    workspaces = JSON.parse(fileContent);
+  } catch (err) {
+    workspaces = {};
+  }
+
+  workspaces = { ...workspaces, ...workspace };
+
+  await saveWorkspace(workspaces);
+
+  return workspace;
+}
+
+export { checkWorkspace, listWorkspaces, addWorkspace, getWorkingTickets, updateWorkspace };
