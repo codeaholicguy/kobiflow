@@ -1,6 +1,6 @@
 {
   "name": "kobiflow",
-  "version": "0.0.5-beta2",
+  "version": "0.0.6-beta1",
   "main": "index.js",
   "preferGlobal": "true",
   "scripts": {

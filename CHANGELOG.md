@@ -1,3 +1,8 @@
+## Version 0.0.6-beta1
+
+- Update pull request title regards with ticket title
+- New command `open` for opening created pull request on browser
+
 ## Version 0.0.5-beta1
 
 - New command `setup` for first time user to setup Github/Jira account, git remote, etc...

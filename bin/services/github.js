@@ -13,7 +13,7 @@ let createPullRequest = (() => {
     } = yield (0, _keychain.getGithubToken)();
     const repoName = yield (0, _git.getRepoName)();
 
-    const { statusCode, body: responseBody } = yield (0, _request.request)({
+    const { statusCode, body: { html_url: url } } = yield (0, _request.request)({
       url: `https://api.github.com/repos/kobiton/${repoName}/pulls`,
       method: "post",
       json: true,
@@ -30,8 +30,10 @@ let createPullRequest = (() => {
     });
 
     if (statusCode !== _httpStatusCodes2.default.CREATED) {
-      throw new Error(`Create pull request failed. ${JSON.stringify(responseBody)}`);
+      throw new Error(`Create pull request failed. ${statusCode}`);
     }
+
+    return url;
   });
 
   return function createPullRequest(_x, _x2, _x3) {

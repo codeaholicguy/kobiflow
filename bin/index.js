@@ -29,6 +29,8 @@ _commander2.default.command("cleanup").description("Cleanup workspace").action(_
 
 _commander2.default.command("fix").description("Fix review comments, change ticket status").action(_commands.fix);
 
+_commander2.default.command("open").description("Open current working pull request on browser").action(_commands.open);
+
 _commander2.default.parse(process.argv);
 
 if (!process.argv.slice(2).length) {

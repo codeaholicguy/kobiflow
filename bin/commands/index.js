@@ -3,7 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.fix = exports.cleanup = exports.setup = exports.list = exports.push = exports.commit = exports.start = undefined;
+exports.open = exports.fix = exports.cleanup = exports.setup = exports.list = exports.push = exports.commit = exports.start = undefined;
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 let start = (() => {
   var _ref = _asyncToGenerator(function* (ticketIds) {
@@ -76,11 +78,23 @@ let push = (() => {
       const ticketCodes = tickets.map(function (ticket) {
         return `KOB-${ticket.ticketId}`;
       });
+
+      let prTitle;
+
+      if (tickets.length > 1) {
+        prTitle = `Submit work for ${ticketCodes.join(" ")}`;
+      } else {
+        const ticket = tickets[0];
+        const ticketCode = ticketCodes[0];
+
+        prTitle = `[${ticketCode}] ${ticket.title}`;
+      }
+
       const { title } = yield (0, _inquirer.prompt)({
         type: "input",
         name: "title",
         message: "Title of the pull request",
-        default: `Submit work for ${ticketCodes.join(" ")}`
+        default: prTitle
       });
 
       const defaultBody = tickets.reduce(function (content, ticket) {
@@ -97,7 +111,10 @@ let push = (() => {
         default: defaultBody
       });
 
-      yield (0, _github.createPullRequest)(branchName, title, body);
+      const url = yield (0, _github.createPullRequest)(branchName, title, body);
+      const workspace = yield (0, _workspace.getWorkingTickets)(branchName);
+
+      yield (0, _workspace.updateWorkspace)(_extends({}, workspace, { url }));
 
       console.log("Create pull request successfully");
 
@@ -222,6 +239,29 @@ let fix = (() => {
   };
 })();
 
+let open = (() => {
+  var _ref8 = _asyncToGenerator(function* () {
+    try {
+      yield (0, _workspace.checkWorkspace)();
+
+      const branchName = yield (0, _git.getCurrentBranchName)();
+      const workspace = yield (0, _workspace.getWorkingTickets)(branchName);
+
+      if (!workspace.url) {
+        throw new Error("This workspace has not been completed yet");
+      }
+
+      yield (0, _process.exec)(`open ${workspace.url}`);
+    } catch (err) {
+      console.error(err.message);
+    }
+  });
+
+  return function open() {
+    return _ref8.apply(this, arguments);
+  };
+})();
+
 var _inquirer = require("inquirer");
 
 var _process = require("../services/process");
@@ -243,3 +283,4 @@ exports.list = list;
 exports.setup = setup;
 exports.cleanup = cleanup;
 exports.fix = fix;
+exports.open = open;
